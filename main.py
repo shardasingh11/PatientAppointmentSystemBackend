@@ -3,6 +3,7 @@ from db.base_class import Base
 from db.session import engine
 from user.models import User
 
+
 Base.metadata.create_all(bind=engine)
 
 
