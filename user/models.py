@@ -1,5 +1,5 @@
 from db.base_model import BaseModel
-from sqlalchemy import Column, String, Integer, Enum
+from sqlalchemy import Column, ForeignKey, String, Integer, Enum
 import enum
 
 
@@ -25,6 +25,35 @@ class User(BaseModel):
     mobile_no = Column(String(20), unique=True, index=True, nullable=False)
     gmail = Column(String, nullable=True)
     user_role = Column(Enum(UserRole))
+
+    
+
+
+
+class Address(BaseModel):
+    __tablename__ = "address"
+
+    area_name = Column(String, nullable=False)
+    city = Column(String, nullable=False)
+    pincode = Column(Integer, nullable=False)
+
+
+
+class UserAddress(BaseModel):
+    __tablename__ = "user_address"
+
+    user_id = Column(
+        Integer,
+        ForeignKey('user.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
+    address_id = Column(
+        Integer,
+        ForeignKey('address.id', ondelete='CASCADE'),
+        nullable=False,
+        index=True,
+    )
 
 
 
