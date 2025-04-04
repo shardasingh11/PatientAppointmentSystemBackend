@@ -26,6 +26,7 @@ class User(BaseModel):
     mobile_no = Column(String(20), unique=True, index=True, nullable=False)
     gmail = Column(String, nullable=True)
     user_role = Column(Enum(UserRole))
+    password = Column(String, nullable=False)
 
     user_addresses = relationship("UserAddress", back_populates="users",cascade="all, delete-orphan")
 

@@ -15,3 +15,9 @@ class BaseModel(Base):
         onupdate = lambda: datetime.datetime.now(datetime.timezone.utc)
 
     )
+
+    def as_dict(self):
+        dict_ = {}
+        for key in self.__mapper__.c.keys():
+            dict_[key] = getattr(self, key)
+        return dict_
