@@ -1,5 +1,6 @@
 from db.base_model import BaseModel
 from sqlalchemy import Column, ForeignKey, String, Integer, Enum
+from sqlalchemy.orm import relationship
 import enum
 
 
@@ -26,8 +27,9 @@ class User(BaseModel):
     gmail = Column(String, nullable=True)
     user_role = Column(Enum(UserRole))
 
-    
+    user_addresses = relationship("UserAddress", back_populates="users",cascade="all, delete-orphan")
 
+    
 
 
 class Address(BaseModel):
@@ -38,13 +40,15 @@ class Address(BaseModel):
     pincode = Column(Integer, nullable=False)
 
 
+    user_addresses = relationship("UserAddress", back_populates="address", cascade="all, delete-orphan")
+
 
 class UserAddress(BaseModel):
     __tablename__ = "user_address"
 
     user_id = Column(
         Integer,
-        ForeignKey('user.id', ondelete='CASCADE'),
+        ForeignKey('users.id', ondelete='CASCADE'),
         nullable=False,
         index=True,
     )
@@ -54,6 +58,9 @@ class UserAddress(BaseModel):
         nullable=False,
         index=True,
     )
+
+    users = relationship("User", back_populates="user_addresses")
+    address = relationship("Address", back_populates="user_addresses")
 
 
 
