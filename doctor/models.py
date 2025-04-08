@@ -33,11 +33,14 @@ class Doctor(BaseModel):
     user = relationship("User", back_populates="doctor")
 
     # Relationship with DoctorAvailability
-    availabilities = relationship("DoctorAvailability", back_populates="doctor")
+    availabilities = relationship("DoctorAvailability", back_populates="doctor", cascade="all, delete-orphan")
     # Relationship with DoctorQualifications
     doctor_qualifications = relationship("DoctorQualifications", back_populates="doctors", cascade="all, delete-orphan")
     # Relationship with DoctorSpeciality 
     doctors_speciality = relationship("Speciality", back_populates="doctors", cascade="all, delete-orphan")
+
+    # Relationship with Appointments
+    appointments = relationship("Appointment", back_populates="doctor")
 
 
 
@@ -69,6 +72,9 @@ class DoctorClinics(BaseModel):
 
     # Relationship with DoctorAvailability
     availabilities = relationship("DoctorAvailability", back_populates="clinic")
+    
+    # Relationship with Appointment
+    appointments = relationship("Appointments", back_populates="clinic")
 
     
 
