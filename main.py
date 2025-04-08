@@ -3,6 +3,7 @@ from db.base_class import Base
 from db.session import engine
 from user.models import User
 from user.api import router as user_router
+# from doctor.models import Doctor
 
 
 Base.metadata.create_all(bind=engine)
