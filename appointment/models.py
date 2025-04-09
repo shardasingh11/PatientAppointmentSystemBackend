@@ -10,9 +10,13 @@ class AppointmentStatus(str, enum.Enum):
     SCHEDULED = "scheduled"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
-    NO_SHOW = "no-show"
+    INPROGRESS = "inprogress"
 
 # Enum for payment status
+class AppointmentPayment(str, enum.Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+
 
 class PaymentStatus(str, enum.Enum):
     PENDING = "pending"
@@ -55,6 +59,7 @@ class Appointment(BaseModel):
     duration = Column(String)
     fees = Column(Float, nullable=False)
     reason_for_visit = Column(Text)
+    payment_status = Column(Enum(AppointmentPayment), default=AppointmentPayment.PENDING)
 
     appointment_status = Column(Enum(AppointmentStatus),
         default=AppointmentStatus.SCHEDULED
