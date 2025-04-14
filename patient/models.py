@@ -16,8 +16,8 @@ class Patient(BaseModel):
     height = Column(Float)
     weight = Column(Float)
     allergies = Column(String)
-    emergency_contact_name = Column(String(100), nullable=False)
-    emergency_contact_number = Column(String(15), nullable=False)
+    emergency_contact_name = Column(String(100))
+    emergency_contact_number = Column(String(15))
     visit_count = Column(Integer, default=0)
     
     is_deleted = Column(Boolean, default=False)  # 👈 Soft delete flag

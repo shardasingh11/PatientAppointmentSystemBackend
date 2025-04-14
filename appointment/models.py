@@ -75,7 +75,7 @@ class Appointment(BaseModel):
     clinic = relationship("DoctorClinics", back_populates="appointments")
 
     # Relationship with PatientReport
-    reports = relationship("PatientReports", back_populates="appointment")
+    reports = relationship("PatientReport", back_populates="appointment")
 
     # Relationship with Payment
     payment = relationship("Payment", back_populates="appointment")
