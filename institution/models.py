@@ -77,5 +77,5 @@ class Speciality(BaseModel):
     description = Column(String, nullable=False)    
 
     # Relationship with DoctorSpeciality
-    doctor_speciality = relationship("DoctorSpeciality", back_populates="speciality", cascade="all, delete-orphan")
+    doctors_speciality = relationship("DoctorSpeciality", back_populates="speciality", cascade="all, delete-orphan")
 

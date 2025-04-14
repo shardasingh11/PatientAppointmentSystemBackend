@@ -36,7 +36,8 @@ class User(BaseModel):
     gmail = Column(String, nullable=True)
     user_role = Column(Enum(UserRole))
     password = Column(String, nullable=False)
-    status = Column(Enum(UserStatus), nullable=False)
+    status = Column(Enum(UserStatus), default=UserStatus.INACTIVE)
+    
 
 
     user_addresses = relationship("UserAddress", back_populates="users",cascade="all, delete-orphan")
@@ -66,7 +67,7 @@ class Address(BaseModel):
     doctor_clinics = relationship('DoctorClinics', back_populates='address')
 
     # relationship with Institute
-    insntitute_address = relationship("InstituteAddress", back_populates="address") 
+    institute_address = relationship("InstituteAddress", back_populates="address") 
     
 
 
