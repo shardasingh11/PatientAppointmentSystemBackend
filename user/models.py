@@ -80,9 +80,11 @@ class UserAddress(BaseModel):
         nullable=False,
         index=True,
     )
+    
     address_id = Column(
         Integer,
         ForeignKey('address.id', ondelete='CASCADE'),
+        unique=True,
         nullable=False,
         index=True,
     )
