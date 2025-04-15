@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from patient.schemas import PatientResponse
-from .models import Gender, UserRole
+from .models import AddressType, Gender, UserRole
 
 
 
@@ -46,4 +46,50 @@ class UserResponseWithPatient(BaseModel):
 class UserWithNestedPatient(UserResponse):
     patient: Optional[PatientResponse] = None
 
+
+# Schemas for Address
+
+
+class AddressCreate(BaseModel):
+    street_address: str
+    area_name: str
+    city: str
+    state: str
+    pincode: int
+    country: str
+    address_type: AddressType
+
+
+class UserAddresses(BaseModel):
+    id: int
+    user_id: int
+    address_id: int
+
+
+class AddressResponse(BaseModel):
+    id: int
+    street_address: str
+    area_name: str
+    city: str
+    state: str
+    pincode: int
+    country: str
+    address_type: AddressType
     
+    user_addresses: List[UserAddresses]
+
+    class Config:
+        from_attributes = True
+
+
+class AddressUpdate(BaseModel):
+    street_address: Optional[str] = None
+    area_name: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[int] = None
+    country: Optional[str] = None
+    address_type: Optional[AddressType] = None
+    
+    class Config:
+        from_attributes = True
