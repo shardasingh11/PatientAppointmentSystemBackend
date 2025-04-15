@@ -44,7 +44,7 @@ class User(BaseModel):
 
     doctor = relationship('Doctor', back_populates='user',uselist=False, cascade='all, delete-orphan')
     # Relationship with Patient
-    patient = relationship("Patient", back_populates="user",cascade="all, delete-orphan" )
+    patient = relationship("Patient",uselist=False, back_populates="user",cascade="all, delete-orphan" )
 
     
 
