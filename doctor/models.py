@@ -26,6 +26,7 @@ class Doctor(BaseModel):
     experience = Column(Integer, nullable=False)
     consultation_fee = Column(DECIMAL(10,2)) 
     bio = Column(String)
+    is_verified = Column(Boolean, default=False)
 
     # Relationship with DoctorClinics 
     clinics = relationship("DoctorClinics", back_populates= "doctor", cascade="all, delete-orphan")

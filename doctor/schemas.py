@@ -97,14 +97,17 @@ class AddressResponse(BaseModel):
 class DoctorClinicWithAddressResponse(BaseModel):
     clinic_info: DoctorClinicResponse
     clinic_address: AddressResponse
-    
-
-class QualificationResponse(QualificationCreate):
-    id: int
 
 
 class InstituteResponse(InstituteCreate):
+    id: int   
+
+class QualificationResponse(QualificationCreate):
     id: int
+    institute: InstituteResponse
+
+
+
 
 
 class DoctorResponse(BaseModel):
@@ -113,3 +116,23 @@ class DoctorResponse(BaseModel):
     institute: InstituteResponse
     clinic_info: DoctorClinicWithAddressResponse
 
+
+class UserResponse(BaseModel):
+    id: int
+    name: str
+
+
+
+class DoctorProfileResponse(BaseModel):
+    id: int
+    speciality: str
+    experience: int
+    consultation_fee: float
+    bio: str
+    is_verified: bool
+    user: UserResponse
+    qualifications: List[QualificationResponse]
+    clinics: List[DoctorClinicWithAddressResponse]
+    
+    class Config:
+        from_attributes = True

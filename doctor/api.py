@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from db.session import get_db
-from doctor.schemas import DoctorCreate, DoctorResponse
+from doctor.schemas import DoctorCreate, DoctorProfileResponse, DoctorResponse
 from doctor import interface
 
 
@@ -20,3 +20,6 @@ async def create_doctor_profile(
     )
 
 
+@router.get("/doctor-profile/{doctor_id}", response_model=DoctorProfileResponse)
+async def get_doctor_profile(doctor_id: int, db: Session = Depends(get_db)):
+    return interface.get_doctor_profile(db=db, doctor_id=doctor_id)
