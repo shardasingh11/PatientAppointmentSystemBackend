@@ -68,14 +68,3 @@ class Qualification(BaseModel):
     # Relationship with DoctorQualifications
     doctor_qualifications = relationship("DoctorQualifications", back_populates="qualification", cascade="all, delete-orphan")
 
-    
-class Speciality(BaseModel):
-    __tablename__ = "speciality"
-
-
-    speciality_name = Column(String, nullable=False)
-    description = Column(String, nullable=False)    
-
-    # Relationship with DoctorSpeciality
-    doctors_speciality = relationship("DoctorSpeciality", back_populates="speciality", cascade="all, delete-orphan")
-

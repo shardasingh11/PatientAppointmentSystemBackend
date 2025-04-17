@@ -22,6 +22,7 @@ class Doctor(BaseModel):
         nullable=False,
         index=True
     )
+    speciality = Column(String, nullable=False)
     experience = Column(Integer, nullable=False)
     consultation_fee = Column(DECIMAL(10,2)) 
     bio = Column(String)
@@ -36,9 +37,6 @@ class Doctor(BaseModel):
     availabilities = relationship("DoctorAvailability", back_populates="doctor", cascade="all, delete-orphan")
     # Relationship with DoctorQualifications
     doctor_qualifications = relationship("DoctorQualifications", back_populates="doctors", cascade="all, delete-orphan")
-    # Relationship with DoctorSpeciality 
-    doctors_speciality = relationship("DoctorSpeciality", back_populates="doctors", cascade="all, delete-orphan")
-
     # Relationship with Appointments
     appointments = relationship("Appointment", back_populates="doctor")
 
@@ -124,26 +122,4 @@ class DoctorQualifications(BaseModel):
     qualification = relationship("Qualification", back_populates="doctor_qualifications")
 
 
-
-class DoctorSpeciality(BaseModel):
-    __tablename__ = "doctor_speciality"
-
-    doctor_id = Column(Integer,
-        ForeignKey("doctors.id", ondelete="CASCADE"),
-        unique=True,
-        nullable=False,
-        index=True    
-    )    
-
-    speciality_id = Column(Integer,
-        ForeignKey("speciality.id", ondelete="CASCADE"),
-        nullable=False, 
-        index=True                       
-    )
-
-    # Relationship with Doctor
-    doctors = relationship("Doctor", back_populates="doctors_speciality")
-    # Relationship with Speciality
-    speciality = relationship("Speciality", back_populates="doctors_speciality")
-    
 
