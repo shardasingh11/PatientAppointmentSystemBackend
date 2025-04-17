@@ -2,11 +2,13 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from db.session import get_db
+from doctor.schemas import DoctorCreate
 from patient.schemas import CreatePatient
 from user.models import UserRole
 from .schemas import AddressCreate, AddressResponse, AddressUpdate, UserPartialUpdate, UserRegister, UserResponse, UserResponseWithPatient, UserWithNestedPatient
 from user import interface
 from patient import interface as patient_interface
+from doctor import interface as doctor_interface
 from sqlalchemy.orm import Session
 
 
@@ -38,6 +40,9 @@ async def user_register(user: UserRegister, db: Session = Depends(get_db)):
 
         response["patient"] = patient_response
     
+    if user.user_role == UserRole.DOCTOR:
+        response["doctor"] = None
+
     return response
     
 

@@ -13,7 +13,7 @@ async def create_patient(db: Session, patient: CreatePatient, user_id: int):
             detail=f"User does not exist for given user id: {user_id}"
         )  
 
-    db_patient = db.query(Patient).filter(Patient.id == user_id).first()
+    db_patient = db.query(Patient).filter(Patient.user_id == user_id).first()
 
     if db_patient:
         raise HTTPException(

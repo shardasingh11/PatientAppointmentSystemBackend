@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
+from doctor.schemas import DoctorResponse
 from patient.schemas import PatientResponse
 from .models import AddressType, Gender, UserRole
 
@@ -13,6 +14,7 @@ class UserBase(BaseModel):
     gender: Gender 
     mobile_no: str = Field(min_length=10, max_length=15, pattern=r'^\+?1?\d{9,15}$')
     gmail: str 
+    user_role: UserRole
     
 
 
@@ -41,8 +43,10 @@ class UserResponse(UserBase):
     
 class UserResponseWithPatient(BaseModel):
     user: UserResponse
-    patient: PatientResponse
+    patient: Optional[PatientResponse] = None
+    doctor: Optional[DoctorResponse] = None
 
+    
 class UserWithNestedPatient(UserResponse):
     patient: Optional[PatientResponse] = None
 
