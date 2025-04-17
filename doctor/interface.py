@@ -6,6 +6,8 @@ from user.models import User
 from doctor.models import Doctor, DoctorClinics, DoctorQualifications
 from user.interface import create_address
 from institution.models import Institute, Qualification
+from sqlalchemy.orm import joinedload, selectinload
+
 
 
 
@@ -188,5 +190,87 @@ async def create_doctor_profile(db: Session, user_id: int, doctor_profile_data: 
 
     return response
 
+        
     
+
+def get_doctor_profile(db: Session, doctor_id: int):
+    # Query with eager loading of all related data
+    doctor = (
+        db.query(Doctor)
+        .filter(Doctor.id == doctor_id)
+        .options(
+            joinedload(Doctor.user),  # Load the user
+            selectinload(Doctor.doctor_qualifications)
+            .joinedload(DoctorQualifications.qualification)
+            .joinedload(Qualification.institute),  # Load qualifications and institutes
+            selectinload(Doctor.clinics)
+            .joinedload(DoctorClinics.address)  # Load clinics and addresses
+        )
+        .first()
+    )
+    
+    if not doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Doctor not found for given doctor id {doctor_id}"
+        )
+    
+    # Build the response (no additional queries needed since data is preloaded)
+    doctor_info = {
+        "id": doctor.id,
+        "speciality": doctor.speciality,
+        "experience": doctor.experience,
+        "consultation_fee": doctor.consultation_fee,
+        "bio": doctor.bio,
+        "is_verified": doctor.is_verified,
+        "user": {
+            "id": doctor.user.id,
+            "name": doctor.user.first_name +" "+ doctor.user.last_name  # Assuming User model has a name field
+        },
+        "qualifications": [],
+        "clinics": []
+    }
+    
+    # Add qualifications (no additional queries)
+    for doc_qual in doctor.doctor_qualifications:
+        qualification = doc_qual.qualification
+        institute = qualification.institute
+        
+        doctor_info["qualifications"].append({
+            "id": qualification.id,
+            "qualification_name": qualification.qualification_name,
+            "course_duration": qualification.course_duration,
+            "year_completed": qualification.year_completed,
+            "institute": {
+                "id": institute.id,
+                "name": institute.name,
+                "type": institute.type.value
+            }
+        })
+    
+    # Add clinics (no additional queries)
+    for clinic in doctor.clinics:
+        doctor_info["clinics"].append({
+            "clinic_info": {
+                "id": clinic.id,
+                "clinic_name": clinic.clinic_name,
+                "clinic_phone": clinic.clinic_phone,
+                "is_primary_location": clinic.is_primary_location,
+                "consultation_hours_notes": clinic.consultation_hours_notes
+            },
+            "clinic_address": {
+                "id": clinic.address.id,
+                "street_address": clinic.address.street_address,
+                "area_name": clinic.address.area_name,
+                "city": clinic.address.city,
+                "state": clinic.address.state,
+                "pincode": clinic.address.pincode,
+                "country": clinic.address.country,
+                "address_type": clinic.address.address_type.value
+            }
+        })
+    return doctor_info
+    
+
+
 
