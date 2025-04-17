@@ -7,7 +7,7 @@ from doctor import interface
 
 router = APIRouter(prefix="/doctor", tags=["Doctor"])
 
-@router.post("/create-doctor-profile/{user_id}", response_model=DoctorResponse)
+@router.post("/doctor-profile/{user_id}", response_model=DoctorResponse)
 async def create_doctor_profile(
     user_id: int,
     doctor: DoctorCreate, 
@@ -18,3 +18,5 @@ async def create_doctor_profile(
         doctor_profile_data=doctor, 
         user_id=user_id
     )
+
+
