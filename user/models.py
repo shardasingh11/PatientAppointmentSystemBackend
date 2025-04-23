@@ -28,6 +28,7 @@ class AddressType(enum.Enum):
 class User(BaseModel):
     __tablename__ = "users"
 
+    username = Column(String, unique=True, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     age = Column(Integer, nullable=False)
@@ -38,7 +39,6 @@ class User(BaseModel):
     password = Column(String, nullable=False)
     status = Column(Enum(UserStatus), default=UserStatus.INACTIVE)
     
-
 
     user_addresses = relationship("UserAddress", back_populates="users",cascade="all, delete-orphan")
 

@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from core.security import get_password_hash
 from user.models import Address, User, UserAddress
 from user.schemas import AddressCreate, AddressUpdate, UserPartialUpdate, UserRegister
 from sqlalchemy.orm import Session, joinedload
@@ -23,6 +24,9 @@ async def create_user(db: Session, user_create: UserRegister):
             detail="Age must be between 0 and 120"
         )
 
+
+    hashed_password = get_password_hash(user_create.password)
+    user_create.password = hashed_password
 
     user = User(**user_create.model_dump()) 
     db.add(user)

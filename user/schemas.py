@@ -8,6 +8,7 @@ from .models import AddressType, Gender, UserRole
 
 
 class UserBase(BaseModel):
+    username: str
     first_name: str 
     last_name: str
     age: int
@@ -40,7 +41,10 @@ class UserPartialUpdate(BaseModel):
 class UserResponse(UserBase):
     id: int
     
-    
+
+class UserDB(UserResponse):
+    pass
+
 class UserResponseWithPatient(BaseModel):
     user: UserResponse
     patient: Optional[PatientResponse] = None
