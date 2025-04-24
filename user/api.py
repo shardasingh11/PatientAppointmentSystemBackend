@@ -62,19 +62,6 @@ async def get_user(
 
 # Get User with user_id
 
-@router.get("/user-profile", response_model=UserWithNestedPatient)
-async def read_user(
-    db: Session = Depends(get_db), 
-    current_user: UserDB = Depends(role_required(
-        allowed_user_roles = [UserRole.PATIENT, UserRole.DOCTOR, UserRole.ADMIN]
-    ))
-):
-    
-    
-    user_id = current_user.id
-
-    user_obj = interface.get_user_by_id(db, user_id)
-    return user_obj
 
 
 @router.patch("/user-profile", response_model=UserResponse)

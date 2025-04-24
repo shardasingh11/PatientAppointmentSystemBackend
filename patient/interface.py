@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from patient.models import Patient
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from patient.schemas import CreatePatient
 from user.models import User
 
@@ -26,5 +26,17 @@ async def create_patient(db: Session, patient: CreatePatient, user_id: int):
     db.commit()
     db.refresh(patient)
     return patient
+
+
+def get_user_by_id(db: Session, user_id: int):
+    db_user = db.query(User).options(joinedload(User.patient)).filter(User.id == user_id).first()
+
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with this id: {user_id} not found"
+        )
+    
+    return db_user
     
     

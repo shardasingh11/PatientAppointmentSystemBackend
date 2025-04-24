@@ -37,16 +37,7 @@ async def create_user(db: Session, user_create: UserRegister):
 
 # Get user by id
 
-def get_user_by_id(db: Session, user_id: int):
-    db_user = db.query(User).options(joinedload(User.patient)).filter(User.id == user_id).first()
 
-    if not db_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with this id: {user_id} not found"
-        )
-    
-    return db_user
 
 
 def update_user_by_id(db: Session, user_id: int, user_update: UserPartialUpdate):
