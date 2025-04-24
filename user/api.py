@@ -50,6 +50,16 @@ async def user_register(user: UserRegister, db: Session = Depends(get_db)):
     return response
     
 
+@router.get("/user", response_model=UserResponse)
+async def get_user(
+    current_user: UserDB = Depends(role_required(
+        allowed_user_roles = [UserRole.PATIENT, UserRole.DOCTOR, UserRole.ADMIN]
+    ))
+):
+    return current_user
+    
+
+
 # Get User with user_id
 
 @router.get("/user-profile", response_model=UserWithNestedPatient)
