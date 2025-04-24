@@ -18,7 +18,7 @@ def get_user_token(user):
     }
 
     access_token = create_access_token(payload=payload)
-    return TokenResponse(access_token=access_token)
+    return TokenResponse(access_token=access_token, expiry_time=expiry_time)
 
 
 
