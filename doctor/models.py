@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, DECIMAL, String, Enum, Time
+from datetime import datetime
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, DECIMAL, String, Enum, Time
 from db.base_model import BaseModel
 from sqlalchemy.orm import relationship
 import enum
@@ -12,6 +13,12 @@ class Days(enum.Enum):
     FRIDAY = "friday"
     SATURDAY = "saturday"
     SUNDAY = "sunday"
+
+
+class VerificationStatus(enum.Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class Doctor(BaseModel):
@@ -40,6 +47,9 @@ class Doctor(BaseModel):
     doctor_qualifications = relationship("DoctorQualifications", back_populates="doctors", cascade="all, delete-orphan")
     # Relationship with Appointments
     appointments = relationship("Appointment", back_populates="doctor")
+
+    # Relationship with DoctorVerification
+    verifications = relationship("DoctorVerification", back_populates="doctor", cascade="all, delete-orphan")
 
 
 
@@ -123,4 +133,22 @@ class DoctorQualifications(BaseModel):
     qualification = relationship("Qualification", back_populates="doctor_qualifications")
 
 
+# Doctor verification table
+class DoctorVerification(BaseModel):
+    __tablename__ = "doctor_verifications"
 
+    doctor_id = Column(Integer, 
+        ForeignKey('doctors.id', ondelete='CASCADE'), 
+        nullable=False,
+        index=True
+    )
+    status = Column(Enum(VerificationStatus), default=VerificationStatus.PENDING)
+    requested_at = Column(DateTime, default=datetime.utcnow)
+    processed_at = Column(DateTime, nullable=True)
+    processed_by = Column(Integer, ForeignKey('users.id'), nullable=True)  # Admin who processed
+    rejection_reason = Column(String, nullable=True)
+    notes = Column(String, nullable=True)
+    
+    # Relationships
+    doctor = relationship("Doctor", back_populates="verifications")
+    admin = relationship("User", foreign_keys=[processed_by])
