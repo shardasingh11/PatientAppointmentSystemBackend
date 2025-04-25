@@ -7,6 +7,7 @@ from auth.api import router as auth_router
 from patient.api import router as patient_router
 import init 
 from fastapi.middleware.cors import CORSMiddleware
+from admin.admin_setup import create_initial_admin
 
 
 
@@ -17,6 +18,11 @@ Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI(title="Patient Appointment System")
+
+# Register the startup event
+@app.on_event("startup")
+async def startup_event():
+    await create_initial_admin()
 
 app.add_middleware(
     CORSMiddleware,
