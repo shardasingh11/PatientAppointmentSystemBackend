@@ -2,11 +2,12 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from doctor.schemas import DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate
-from user.models import User
+from user.models import User, UserRole
 from doctor.models import Doctor, DoctorClinics, DoctorQualifications
 from user.interface import create_address
 from institution.models import Institute, Qualification
 from sqlalchemy.orm import joinedload, selectinload
+
 
 
 
@@ -270,7 +271,32 @@ def get_doctor_profile(db: Session, doctor_id: int):
             }
         })
     return doctor_info
+
+def get_doctor_by_user_id(db: Session, user_id: int):
+    db_user = db.query(User).filter(User.id == user_id).first()
+
+    if not db_user:
+        if not db_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User not found for given user id {user_id}"
+            )
     
+    db_doctor = db.query(Doctor).filter(Doctor.user_id == user_id).first()
+    print("logging doctor id",db_doctor)
+
+    if not db_doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Doctor entry not found for user id {user_id}"
+        )
+
+    return{"doctor_id": db_doctor.id}
+
+        
+    
+
+
 
 
 

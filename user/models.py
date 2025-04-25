@@ -1,5 +1,5 @@
 from db.base_model import BaseModel
-from sqlalchemy import Column, ForeignKey, String, Integer, Enum
+from sqlalchemy import Column, ForeignKey, String, Integer, Enum, Boolean
 from sqlalchemy.orm import relationship
 import enum
 
@@ -38,6 +38,7 @@ class User(BaseModel):
     user_role = Column(Enum(UserRole))
     password = Column(String, nullable=False)
     status = Column(Enum(UserStatus), default=UserStatus.INACTIVE)
+    is_profile_created = Column(Boolean, default=False)
     
 
     user_addresses = relationship("UserAddress", back_populates="users",cascade="all, delete-orphan")

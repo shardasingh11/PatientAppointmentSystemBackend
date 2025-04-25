@@ -41,6 +41,10 @@ async def user_register(user: UserRegister, db: Session = Depends(get_db)):
             patient = CreatePatient()
         )  
 
+        user_update = UserPartialUpdate(is_profile_created=True)
+        interface.update_user_by_id(db=db, user_id=patient_response.user_id, user_update=user_update) # type: ignore
+
+
         response["patient"] = patient_response
     
     if user.user_role == UserRole.DOCTOR:
