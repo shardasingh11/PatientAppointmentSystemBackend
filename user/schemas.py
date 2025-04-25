@@ -36,10 +36,12 @@ class UserPartialUpdate(BaseModel):
         pattern=r'^\+?1?\d{9,15}$'
     )
     gmail: Optional[str] = None
+    is_profile_created: Optional[bool] = False
     
 
 class UserResponse(UserBase):
     id: int
+    is_profile_created: bool
     
 
 class UserDB(UserResponse):
