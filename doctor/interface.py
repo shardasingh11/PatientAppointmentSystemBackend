@@ -311,3 +311,8 @@ def create_doctor_verification_req(db: Session, doctor_id: int):
     db.commit()
     return {"response": "verification_requested", "status": VerificationStatus.PENDING}
 
+
+
+def get_doctor_profile_with_verification(db:Session):
+    pass
+    

@@ -58,3 +58,4 @@ async def get_doctor_profile(
 @router.post("/{doctor_id}/doctor-verification", response_model=dict)
 async def doctor_verification_req(doctor_id: int, db = Depends(get_db)):
     return interface.create_doctor_verification_req(db=db, doctor_id=doctor_id)
+

@@ -1,8 +1,10 @@
+from datetime import datetime
 from typing import List
 from pydantic import BaseModel
 
 from institution.models import InstitutionType
 from user.models import AddressType
+from .models import VerificationStatus
 
 
 class AddressCreate(BaseModel):
@@ -136,3 +138,29 @@ class DoctorProfileResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+
+class DoctorVerificationResponse(BaseModel):
+    id: int
+    doctor_id: int
+    status: VerificationStatus
+    requested_at: datetime
+    processed_at: datetime | None = None
+    processed_by: int | None = None
+    rejection_reason: str | None = None
+    notes: str | None = None
+
+
+
+class DoctorProfileWithVerificationResponse(BaseModel):
+    id: int
+    speciality: str
+    experience: int
+    consultation_fee: float
+    bio: str
+    is_verified: bool
+    user: UserResponse
+    qualifications: List[QualificationResponse]
+    clinics: List[DoctorClinicWithAddressResponse]
+    DoctorVerification: List[DoctorVerificationResponse]
