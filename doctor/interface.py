@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from doctor.schemas import DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate
 from user.models import User, UserRole
-from doctor.models import Doctor, DoctorClinics, DoctorQualifications
+from doctor.models import Doctor, DoctorClinics, DoctorQualifications, DoctorVerification, VerificationStatus
 from user.interface import create_address
 from institution.models import Institute, Qualification
 from sqlalchemy.orm import joinedload, selectinload
@@ -294,9 +294,20 @@ def get_doctor_by_user_id(db: Session, user_id: int):
     return{"doctor_id": db_doctor.id}
 
         
-    
+# create doctor verification
+def create_doctor_verification_req(db: Session, doctor_id: int):
+    db_doctor = db.query(Doctor).filter(Doctor.id == doctor_id).first()
 
-
-
-
+    if not db_doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Doctor not found for this doctor id: {doctor_id}"
+        )
+    verification = DoctorVerification(
+        doctor_id=doctor_id, 
+        status=VerificationStatus.PENDING
+    ) 
+    db.add(verification)
+    db.commit()
+    return {"response": "verification_requested", "status": VerificationStatus.PENDING}
 

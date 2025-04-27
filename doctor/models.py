@@ -16,6 +16,7 @@ class Days(enum.Enum):
 
 
 class VerificationStatus(enum.Enum):
+    NOT_REQUESTED = "not_requested"
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -142,7 +143,7 @@ class DoctorVerification(BaseModel):
         nullable=False,
         index=True
     )
-    status = Column(Enum(VerificationStatus), default=VerificationStatus.PENDING)
+    status = Column(Enum(VerificationStatus), default=VerificationStatus.NOT_REQUESTED)
     requested_at = Column(DateTime, default=datetime.utcnow)
     processed_at = Column(DateTime, nullable=True)
     processed_by = Column(Integer, ForeignKey('users.id'), nullable=True)  # Admin who processed
