@@ -309,10 +309,103 @@ def create_doctor_verification_req(db: Session, doctor_id: int):
     ) 
     db.add(verification)
     db.commit()
+    db.refresh
     return {"response": "verification_requested", "status": VerificationStatus.PENDING}
 
 
 
-def get_doctor_profile_with_verification(db:Session):
-    pass
+def get_doctor_profile_with_verification(db:Session, skip: int = 0, limit: int = 0):
+    
+    doctors = (
+        db.query(Doctor).options(
+            joinedload(Doctor.user),
+            selectinload(Doctor.doctor_qualifications)
+                .joinedload(DoctorQualifications.qualification)
+                .joinedload(Qualification.institute),
+            selectinload(Doctor.clinics)
+                .joinedload(DoctorClinics.address),
+            selectinload(Doctor.verifications)
+                .joinedload(DoctorVerification.admin)
+        )
+        .offset(skip).limit(limit).all()
+    )
+    
+    
+    # Build the response (no additional queries needed since data is preloaded)
+    response = []
+    for doctor in doctors:
+        doctor_info = {
+            "id": doctor.id,
+            "speciality": doctor.speciality,
+            "experience": doctor.experience,
+            "consultation_fee": doctor.consultation_fee,
+            "bio": doctor.bio,
+            "is_verified": doctor.is_verified,
+            "user": {
+                "id": doctor.user.id,
+                "name": doctor.user.first_name + " " + doctor.user.last_name
+            },
+            "qualifications": [],
+            "clinics": [],
+            "DoctorVerification": []
+        }
+        
+        # Add qualifications
+        for doc_qual in doctor.doctor_qualifications:
+            qualification = doc_qual.qualification
+            institute = qualification.institute
+            
+            doctor_info["qualifications"].append({
+                "id": qualification.id,
+                "qualification_name": qualification.qualification_name,
+                "course_duration": qualification.course_duration,
+                "year_completed": qualification.year_completed,
+                "institute": {
+                    "id": institute.id,
+                    "name": institute.name,
+                    "type": institute.type.value
+                }
+            })
+
+        # Add clinics
+        for clinic in doctor.clinics:
+            doctor_info["clinics"].append({
+                "clinic_info": {
+                    "id": clinic.id,
+                    "clinic_name": clinic.clinic_name,
+                    "clinic_phone": clinic.clinic_phone,
+                    "is_primary_location": clinic.is_primary_location,
+                    "consultation_hours_notes": clinic.consultation_hours_notes
+                },
+                "clinic_address": {
+                    "id": clinic.address.id,
+                    "street_address": clinic.address.street_address,
+                    "area_name": clinic.address.area_name,
+                    "city": clinic.address.city,
+                    "state": clinic.address.state,
+                    "pincode": clinic.address.pincode,
+                    "country": clinic.address.country,
+                    "address_type": clinic.address.address_type.value
+                }
+            })
+
+        # Add verifications
+        for verification in doctor.verifications:
+            doctor_info["DoctorVerification"].append({
+                "id": verification.id,
+                "doctor_id": verification.doctor_id,
+                "status": verification.status.value,
+                "requested_at": verification.requested_at,
+                "processed_at": verification.processed_at,
+                "processed_by": verification.processed_by,
+                "rejection_reason": verification.rejection_reason,
+                "notes": verification.notes
+            })
+
+        response.append(doctor_info)
+
+    return response
+
+
+
     

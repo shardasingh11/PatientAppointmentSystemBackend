@@ -20,4 +20,4 @@ async def get_doctor_profile_with_verification(
         allowed_user_roles=[UserRole.ADMIN]
     ))    
 ):
-    return interface.get_doctor_profile_with_verification(db=db)
+    return interface.get_doctor_profile_with_verification(db=db, skip=skip, limit=limit)
