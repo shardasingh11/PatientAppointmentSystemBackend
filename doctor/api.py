@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.permissions import role_required
 from db.session import get_db
-from doctor.schemas import DoctorCreate, DoctorProfileResponse, DoctorResponse
+from doctor.schemas import DoctorCreate, DoctorProfileResponse, DoctorResponse, DoctorVerificationResponse
 from doctor import interface
 from core.security import oauth2_scheme
 from user.models import UserRole
@@ -59,3 +59,7 @@ async def get_doctor_profile(
 async def doctor_verification_req(doctor_id: int, db = Depends(get_db)):
     return interface.create_doctor_verification_req(db=db, doctor_id=doctor_id)
 
+
+@router.get("/doctor-verification/{doctor_id}",response_model=DoctorVerificationResponse)
+async def get_doctor_verification(doctor_id: int, db: Session = Depends(get_db)):
+    return interface.get_doctor_verification_profile(db=db, doctor_id=doctor_id)

@@ -407,5 +407,28 @@ def get_doctor_profile_with_verification(db:Session, skip: int = 0, limit: int =
     return response
 
 
+def get_doctor_verification_profile(db: Session, doctor_id: int):
+
+    db_doctor = db.query(Doctor).filter(Doctor.id == doctor_id).first()
+
+    if not db_doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Doctor not found for this doctor id: {doctor_id}"
+        )
+    
+    db_verify = (
+        db.query(DoctorVerification)
+         .filter(DoctorVerification.doctor_id == doctor_id)
+         .first()
+    )
+
+    if not db_verify:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Doctor Verification request is not found for this doctor id: {doctor_id}"
+        )
+    return db_verify
+
 
     
