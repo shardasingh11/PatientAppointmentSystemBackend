@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 from institution.models import InstitutionType
@@ -165,3 +165,10 @@ class DoctorProfileWithVerificationResponse(BaseModel):
     qualifications: List[QualificationResponse]
     clinics: List[DoctorClinicWithAddressResponse]
     DoctorVerification: List[DoctorVerificationResponse]
+
+
+class UpdateDoctorVerificationData(BaseModel):
+    status: VerificationStatus
+    rejection_reason: Optional[str] = None
+    notes: Optional[str] = None
+

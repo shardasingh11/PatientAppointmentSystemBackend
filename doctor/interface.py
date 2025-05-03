@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from doctor.schemas import DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate
+from doctor.schemas import DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate, UpdateDoctorVerificationData
 from user.models import User, UserRole
 from doctor.models import Doctor, DoctorClinics, DoctorQualifications, DoctorVerification, VerificationStatus
 from user.interface import create_address
@@ -420,18 +420,62 @@ def get_doctor_verification_profile(db: Session, doctor_id: int):
             detail=f"Doctor not found for this doctor id: {doctor_id}"
         )
     
-    db_verify = (
+    doctor_verification_record = (
         db.query(DoctorVerification)
          .filter(DoctorVerification.doctor_id == doctor_id)
          .first()
     )
 
-    if not db_verify:
+    if not doctor_verification_record:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Doctor Verification request is not found for this doctor id: {doctor_id}"
         )
-    return db_verify
+    return doctor_verification_record
+
+
+
+def update_doctor_verification_data(
+     db: Session,
+     verification_id: int, 
+     update_doctor_verification: UpdateDoctorVerificationData,
+     admin_id: int
+):
+    db_doctor_verification = db.query(DoctorVerification).filter(DoctorVerification.id == verification_id).first() 
+
+    if not db_doctor_verification:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Doctor Verification details is not found for this: {verification_id}"
+        )
+
+    db_admin_user = db.query(User).filter(User.id == admin_id).first()
+
+    if not db_admin_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Admin user not found"
+        )
+    
+    if not db_admin_user.user_role == UserRole.ADMIN:  # type: ignore
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"User {admin_id} don't have required role to perform this action"
+        )
+    
+    
+    verification_dict = update_doctor_verification.model_dump(exclude_unset=True)
+
+    verification_dict["processed_by"] = admin_id
+
+    for field, value in verification_dict.items():
+        setattr(db_doctor_verification, field, value)
+
+    db.commit()
+    db.refresh(db_doctor_verification)
+
+    return db_doctor_verification
+    
 
 
     

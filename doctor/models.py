@@ -16,10 +16,11 @@ class Days(enum.Enum):
 
 
 class VerificationStatus(enum.Enum):
-    NOT_REQUESTED = "not_requested"
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+    NOT_REQUESTED = "not_requested"
+
 
 
 class Doctor(BaseModel):
