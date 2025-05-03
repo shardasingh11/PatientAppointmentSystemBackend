@@ -226,7 +226,8 @@ def get_doctor_profile(db: Session, doctor_id: int):
         "is_verified": doctor.is_verified,
         "user": {
             "id": doctor.user.id,
-            "name": doctor.user.first_name +" "+ doctor.user.last_name  # Assuming User model has a name field
+            "name": doctor.user.first_name +" "+ doctor.user.last_name,  # Assuming User model has a name field
+            "email": doctor.user.gmail
         },
         "qualifications": [],
         "clinics": []
@@ -317,7 +318,8 @@ def create_doctor_verification_req(db: Session, doctor_id: int):
 def get_doctor_profile_with_verification(db:Session, skip: int = 0, limit: int = 0):
     
     doctors = (
-        db.query(Doctor).options(
+        db.query(Doctor).join(Doctor.verifications)
+        .options(
             joinedload(Doctor.user),
             selectinload(Doctor.doctor_qualifications)
                 .joinedload(DoctorQualifications.qualification)
@@ -343,7 +345,8 @@ def get_doctor_profile_with_verification(db:Session, skip: int = 0, limit: int =
             "is_verified": doctor.is_verified,
             "user": {
                 "id": doctor.user.id,
-                "name": doctor.user.first_name + " " + doctor.user.last_name
+                "name": doctor.user.first_name + " " + doctor.user.last_name,
+                "email": doctor.user.gmail
             },
             "qualifications": [],
             "clinics": [],

@@ -122,6 +122,7 @@ class DoctorResponse(BaseModel):
 class UserResponse(BaseModel):
     id: int
     name: str
+    email: str
 
 
 
