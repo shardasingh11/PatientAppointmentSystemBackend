@@ -58,12 +58,24 @@ async def get_doctor_profile(
 
 # Doctor verification route
 @router.post("/{doctor_id}/doctor-verification", response_model=dict)
-async def doctor_verification_req(doctor_id: int, db = Depends(get_db)):
+async def doctor_verification_req(
+    doctor_id: int, 
+    db = Depends(get_db),
+    current_user: UserDB = Depends(role_required(
+        allowed_user_roles=[UserRole.DOCTOR]
+    ))
+):
     return interface.create_doctor_verification_req(db=db, doctor_id=doctor_id)
 
 
 @router.get("/doctor-verification/{doctor_id}",response_model=DoctorVerificationResponse)
-async def get_doctor_verification(doctor_id: int, db: Session = Depends(get_db)):
+async def get_doctor_verification(
+    doctor_id: int, 
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(role_required(
+        allowed_user_roles=[UserRole.DOCTOR, UserRole.ADMIN]
+    ))
+):
     return interface.get_doctor_verification_profile(db=db, doctor_id=doctor_id)
 
 
