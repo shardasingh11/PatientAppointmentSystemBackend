@@ -441,7 +441,7 @@ def update_doctor_verification_data(
      update_doctor_verification: UpdateDoctorVerificationData,
      admin_id: int
 ):
-    db_doctor_verification = db.query(DoctorVerification).filter(DoctorVerification.id == verification_id).first() 
+    db_doctor_verification = db.query(DoctorVerification).filter(DoctorVerification.id == verification_id).options(joinedload(DoctorVerification.doctor)).first() 
 
     if not db_doctor_verification:
         raise HTTPException(
@@ -463,13 +463,18 @@ def update_doctor_verification_data(
             detail=f"User {admin_id} don't have required role to perform this action"
         )
     
-    
     verification_dict = update_doctor_verification.model_dump(exclude_unset=True)
 
     verification_dict["processed_by"] = admin_id
 
     for field, value in verification_dict.items():
         setattr(db_doctor_verification, field, value)
+
+    if verification_dict["status"] == VerificationStatus.APPROVED:
+        db_doctor_verification.doctor.is_verified = True
+    else:
+        db_doctor_verification.doctor.is_verified = False
+
 
     db.commit()
     db.refresh(db_doctor_verification)
