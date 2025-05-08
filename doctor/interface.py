@@ -315,7 +315,7 @@ def create_doctor_verification_req(db: Session, doctor_id: int):
 
 
 
-def get_doctor_profile_with_verification(db:Session, skip: int = 0, limit: int = 0):
+def get_doctor_profile_with_verification(db:Session, skip: int = 0, limit: int = 10):
     
     doctors = (
         db.query(Doctor).join(Doctor.verifications)
@@ -483,4 +483,77 @@ def update_doctor_verification_data(
     
 
 
+
+ # interface for patients to get all the doctors
+def get_doctors_list_for_patients(db: Session, skip: int =0, limit: int = 10):
+    doctors = (
+        db.query(Doctor).filter(Doctor.is_verified == True)
+        .options(
+            joinedload(Doctor.user),
+            selectinload(Doctor.doctor_qualifications)
+                .joinedload(DoctorQualifications.qualification),
+            selectinload(Doctor.clinics)
+                .joinedload(DoctorClinics.address)
+        ).offset(skip).limit(limit).all()
+    )
+
+
+    response = []
+        
+    # Build the response (no additional queries needed since data is preloaded)
+    for doctor in doctors:
+        
+        doctor_info = {
+            "id": doctor.id,
+            "speciality": doctor.speciality,
+            "experience": doctor.experience,
+            "consultation_fee": doctor.consultation_fee,
+            "bio": doctor.bio,
+            "is_verified": doctor.is_verified,
+            "user":{
+                "id": doctor.user.id,
+                "name": doctor.user.first_name + " " + doctor.user.last_name,
+                "email": doctor.user.gmail
+            },
+
+            "qualifications": [],
+            "clinics": [],
+        }
+
+        # Add qualifications
+        for doc_qual in doctor.doctor_qualifications:
+            qualification = doc_qual.qualification
+
+            doctor_info["qualifications"].append({
+                "id": qualification.id,
+                "qualification_name": qualification.qualification_name
+            })
+
+        # Add clinics
+        for clinic in doctor.clinics:
+            doctor_info["clinics"].append({
+                "clinic_info": {
+                    "id": clinic.id,
+                    "clinic_name": clinic.clinic_name,
+                    "clinic_phone": clinic.clinic_phone,
+                    "is_primary_location": clinic.is_primary_location,
+                    "consultation_hours_notes": clinic.consultation_hours_notes
+                },
+                "clinic_address": {
+                    "id": clinic.address.id,
+                    "street_address": clinic.address.street_address,
+                    "area_name": clinic.address.area_name,
+                    "city": clinic.address.city,
+                    "state": clinic.address.state,
+                    "pincode": clinic.address.pincode,
+                    "country": clinic.address.country,
+                    "address_type": clinic.address.address_type.value
+                }
+            })
+        
+        response.append(doctor_info)
     
+    return response
+
+
+   
