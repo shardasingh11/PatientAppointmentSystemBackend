@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from doctor.schemas import DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate
+from doctor.schemas import DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate, UpdateDoctorVerificationData
 from user.models import User, UserRole
 from doctor.models import Doctor, DoctorClinics, DoctorQualifications, DoctorVerification, VerificationStatus
 from user.interface import create_address
@@ -226,7 +226,8 @@ def get_doctor_profile(db: Session, doctor_id: int):
         "is_verified": doctor.is_verified,
         "user": {
             "id": doctor.user.id,
-            "name": doctor.user.first_name +" "+ doctor.user.last_name  # Assuming User model has a name field
+            "name": doctor.user.first_name +" "+ doctor.user.last_name,  # Assuming User model has a name field
+            "email": doctor.user.gmail
         },
         "qualifications": [],
         "clinics": []
@@ -309,5 +310,177 @@ def create_doctor_verification_req(db: Session, doctor_id: int):
     ) 
     db.add(verification)
     db.commit()
+    db.refresh
     return {"response": "verification_requested", "status": VerificationStatus.PENDING}
 
+
+
+def get_doctor_profile_with_verification(db:Session, skip: int = 0, limit: int = 0):
+    
+    doctors = (
+        db.query(Doctor).join(Doctor.verifications)
+        .options(
+            joinedload(Doctor.user),
+            selectinload(Doctor.doctor_qualifications)
+                .joinedload(DoctorQualifications.qualification)
+                .joinedload(Qualification.institute),
+            selectinload(Doctor.clinics)
+                .joinedload(DoctorClinics.address),
+            selectinload(Doctor.verifications)
+                .joinedload(DoctorVerification.admin)
+        )
+        .offset(skip).limit(limit).all()
+    )
+    
+    
+    # Build the response (no additional queries needed since data is preloaded)
+    response = []
+    for doctor in doctors:
+        doctor_info = {
+            "id": doctor.id,
+            "speciality": doctor.speciality,
+            "experience": doctor.experience,
+            "consultation_fee": doctor.consultation_fee,
+            "bio": doctor.bio,
+            "is_verified": doctor.is_verified,
+            "user": {
+                "id": doctor.user.id,
+                "name": doctor.user.first_name + " " + doctor.user.last_name,
+                "email": doctor.user.gmail
+            },
+            "qualifications": [],
+            "clinics": [],
+            "DoctorVerification": []
+        }
+        
+        # Add qualifications
+        for doc_qual in doctor.doctor_qualifications:
+            qualification = doc_qual.qualification
+            institute = qualification.institute
+            
+            doctor_info["qualifications"].append({
+                "id": qualification.id,
+                "qualification_name": qualification.qualification_name,
+                "course_duration": qualification.course_duration,
+                "year_completed": qualification.year_completed,
+                "institute": {
+                    "id": institute.id,
+                    "name": institute.name,
+                    "type": institute.type.value
+                }
+            })
+
+        # Add clinics
+        for clinic in doctor.clinics:
+            doctor_info["clinics"].append({
+                "clinic_info": {
+                    "id": clinic.id,
+                    "clinic_name": clinic.clinic_name,
+                    "clinic_phone": clinic.clinic_phone,
+                    "is_primary_location": clinic.is_primary_location,
+                    "consultation_hours_notes": clinic.consultation_hours_notes
+                },
+                "clinic_address": {
+                    "id": clinic.address.id,
+                    "street_address": clinic.address.street_address,
+                    "area_name": clinic.address.area_name,
+                    "city": clinic.address.city,
+                    "state": clinic.address.state,
+                    "pincode": clinic.address.pincode,
+                    "country": clinic.address.country,
+                    "address_type": clinic.address.address_type.value
+                }
+            })
+
+        # Add verifications
+        for verification in doctor.verifications:
+            doctor_info["DoctorVerification"].append({
+                "id": verification.id,
+                "doctor_id": verification.doctor_id,
+                "status": verification.status.value,
+                "requested_at": verification.requested_at,
+                "processed_at": verification.processed_at,
+                "processed_by": verification.processed_by,
+                "rejection_reason": verification.rejection_reason,
+                "notes": verification.notes
+            })
+
+        response.append(doctor_info)
+
+    return response
+
+
+def get_doctor_verification_profile(db: Session, doctor_id: int):
+
+    db_doctor = db.query(Doctor).filter(Doctor.id == doctor_id).first()
+
+    if not db_doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Doctor not found for this doctor id: {doctor_id}"
+        )
+    
+    doctor_verification_record = (
+        db.query(DoctorVerification)
+         .filter(DoctorVerification.doctor_id == doctor_id)
+         .first()
+    )
+
+    if not doctor_verification_record:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Doctor Verification request is not found for this doctor id: {doctor_id}"
+        )
+    return doctor_verification_record
+
+
+
+def update_doctor_verification_data(
+     db: Session,
+     verification_id: int, 
+     update_doctor_verification: UpdateDoctorVerificationData,
+     admin_id: int
+):
+    db_doctor_verification = db.query(DoctorVerification).filter(DoctorVerification.id == verification_id).options(joinedload(DoctorVerification.doctor)).first() 
+
+    if not db_doctor_verification:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Doctor Verification details is not found for this: {verification_id}"
+        )
+
+    db_admin_user = db.query(User).filter(User.id == admin_id).first()
+
+    if not db_admin_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Admin user not found"
+        )
+    
+    if not db_admin_user.user_role == UserRole.ADMIN:  # type: ignore
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"User {admin_id} don't have required role to perform this action"
+        )
+    
+    verification_dict = update_doctor_verification.model_dump(exclude_unset=True)
+
+    verification_dict["processed_by"] = admin_id
+
+    for field, value in verification_dict.items():
+        setattr(db_doctor_verification, field, value)
+
+    if verification_dict["status"] == VerificationStatus.APPROVED:
+        db_doctor_verification.doctor.is_verified = True
+    else:
+        db_doctor_verification.doctor.is_verified = False
+
+
+    db.commit()
+    db.refresh(db_doctor_verification)
+
+    return db_doctor_verification
+    
+
+
+    
