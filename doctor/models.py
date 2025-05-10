@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, DECIMAL, String, Enum, Time
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, DECIMAL, String, Enum, Time, UniqueConstraint
 from db.base_model import BaseModel
 from sqlalchemy.orm import relationship
 import enum
@@ -107,7 +107,11 @@ class DoctorAvailability(BaseModel):
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)
     is_available = Column(Boolean, nullable=False)
-
+    
+     # Add unique constraint to prevent duplicate day-time combinations
+    __table_args__ = (
+        UniqueConstraint('doctor_id', 'clinic_id', 'days_of_week', 'start_time', 'end_time'),
+    )
     # Relationship with Doctor
     doctor = relationship("Doctor", back_populates="availabilities")
 

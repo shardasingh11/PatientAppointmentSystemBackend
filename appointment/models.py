@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Float, Date, Time, Text, Enum
+from sqlalchemy import CheckConstraint, Column, ForeignKey, Integer, String, Float, Date, Time, Text, Enum
 from db.base_model import BaseModel
 from sqlalchemy.orm import relationship
 import enum
@@ -55,8 +55,8 @@ class Appointment(BaseModel):
         index=True                   
     )
     date = Column(Date, nullable=False)
-    time = Column(Time, nullable=False)
-    duration = Column(String)
+    start_time = Column(Time, nullable=False)
+    end_time = Column(Time, nullable=False)
     fees = Column(Float, nullable=False)
     reason_for_visit = Column(Text)
     payment_status = Column(Enum(AppointmentPayment), default=AppointmentPayment.PENDING)
@@ -66,6 +66,10 @@ class Appointment(BaseModel):
     )
     
     notes = Column(Text)
+      # Add constraint to ensure end_time is after start_time
+    __table_args__ = (
+        CheckConstraint('end_time > start_time', name='check_end_time_after_start'),
+    )
 
     # Relationship with Patient
     patient = relationship("Patient", back_populates="appointments")

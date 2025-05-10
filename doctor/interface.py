@@ -1,9 +1,9 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from doctor.schemas import DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate, UpdateDoctorVerificationData
+from doctor.schemas import DoctorAvailabilityCreate, DoctorClinicWithAddress, DoctorCreate, DoctorData, QualificationCreate, InstituteCreate, UpdateDoctorVerificationData
 from user.models import User, UserRole
-from doctor.models import Doctor, DoctorClinics, DoctorQualifications, DoctorVerification, VerificationStatus
+from doctor.models import Doctor, DoctorAvailability, DoctorClinics, DoctorQualifications, DoctorVerification, VerificationStatus
 from user.interface import create_address
 from institution.models import Institute, Qualification
 from sqlalchemy.orm import joinedload, selectinload
@@ -150,6 +150,76 @@ async def create_doctor_clinic(
     return response
 
 
+async def create_doctor_availability(
+    db: Session,
+    doctor_id: int, 
+    clinic_id: int, 
+    doctor_availability_data: DoctorAvailabilityCreate
+):
+    
+    # Check if doctor exists
+    db_doctor = db.query(Doctor).filter(Doctor.id == doctor_id).first()
+    if not db_doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Doctor not found for doctor id {doctor_id}"
+        )
+    
+    # Check if clinic exists
+    db_clinic = db.query(DoctorClinics).filter(DoctorClinics.id == clinic_id).first()
+    if not db_clinic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Clinic not found for clinic id {clinic_id}"
+        )
+    
+    # Check if the clinic belongs to the doctor
+    if db_clinic.doctor_id != doctor_id: # type: ignore
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Clinic {clinic_id} does not belong to doctor {doctor_id}"
+        )
+    
+    created_availabilities = []
+    for day in doctor_availability_data.days_of_week:
+        
+        # Create availability for this day
+        availability = DoctorAvailability(
+            doctor_id=doctor_id,
+            clinic_id=clinic_id,
+            days_of_week=day,
+            start_time=doctor_availability_data.start_time,
+            end_time=doctor_availability_data.end_time,
+            is_available=True
+        )
+        
+        db.add(availability)
+        created_availabilities.append(availability)
+    
+    # Commit all changes
+    db.commit()
+    
+    # Refresh objects to get IDs
+    for availability in created_availabilities:
+        db.refresh(availability)
+    
+    # Format response
+    response = []
+    for availability in created_availabilities:
+        response.append({
+            "id": availability.id,
+            "doctor_id": availability.doctor_id,
+            "clinic_id": availability.clinic_id,
+            "days_of_week": availability.days_of_week.value,
+            "start_time": availability.start_time.strftime("%H:%M"),
+            "end_time": availability.end_time.strftime("%H:%M"),
+            "is_available": availability.is_available
+        })
+    
+    return response
+
+
+
 async def create_doctor_profile(db: Session, user_id: int, doctor_profile_data: DoctorCreate):
     db_user = db.query(User).filter(User.id == user_id).first()
 
@@ -158,7 +228,7 @@ async def create_doctor_profile(db: Session, user_id: int, doctor_profile_data: 
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User not found for given user id {user_id}"
         )
-
+    
     # make entry in doctor table using doctor data with user_id
     # make entry in institute table using institute data
     # make entry in qualification table using qualification data with institute_id
@@ -189,7 +259,17 @@ async def create_doctor_profile(db: Session, user_id: int, doctor_profile_data: 
     )
     response["clinic_info"] = doctor_clinic
 
+    doctor_availability = await create_doctor_availability(
+        doctor_id=doctor.id, # type: ignore
+        clinic_id= doctor_clinic["clinic_info"].id,
+        doctor_availability_data=doctor_profile_data.doctor_availability,
+        db=db
+    )
+
+    response["doctor_availability"] = doctor_availability
+
     return response
+
 
         
     
