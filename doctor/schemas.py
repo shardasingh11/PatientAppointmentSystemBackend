@@ -109,6 +109,9 @@ class QualificationResponse(QualificationCreate):
     institute: InstituteResponse
 
 
+class QualificationResponseOnly(BaseModel):
+    id: int
+    qualification_name: str
 
 
 
@@ -172,3 +175,15 @@ class UpdateDoctorVerificationData(BaseModel):
     rejection_reason: Optional[str] = None
     notes: Optional[str] = None
 
+
+# doctors response for patients
+class DoctorsResponseForPatients(BaseModel):
+    id: int
+    speciality: str
+    experience: int
+    consultation_fee: float
+    bio: str
+    is_verified: bool
+    user: UserResponse
+    qualifications: List[QualificationResponseOnly]
+    clinics: List[DoctorClinicWithAddressResponse]
