@@ -12,6 +12,7 @@ from auth.api import router as auth_router
 from patient.api import router as patient_router
 from admin.api import router as admin_router
 from populate_db.api import router as populate_router
+from appointment.api import router as appointment_router
 
 
 
@@ -45,6 +46,7 @@ app.include_router(user_router)
 app.include_router(patient_router)
 app.include_router(doctor_router)
 app.include_router(populate_router)
+app.include_router(appointment_router)
 
 
 
