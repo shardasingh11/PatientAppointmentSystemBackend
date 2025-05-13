@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import List
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 from appointment.models import Appointment
 from appointment.schemas import CreateAppointment
-from doctor.models import Doctor, DoctorAvailability
+from doctor.models import Doctor, DoctorAvailability, DoctorClinics
 from patient.models import Patient
 from user.models import User
 
@@ -196,4 +196,32 @@ def create_doctor_appointment(
     return appointment_obj
 
     
+# create get all patient appointments
+def get_all_patient_appointments(db: Session, user_id: int):
+    patient = db.query(Patient).filter(Patient.user_id == user_id).first()
 
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No Patient found for this user id {user_id}"
+        )
+    
+    patient_appointments = (
+        db.query(Appointment)
+        .filter(Appointment.patient_id == patient.id)
+        .options(
+            joinedload(Appointment.doctor)
+            .joinedload(Doctor.user),
+            selectinload(Appointment.clinic)
+                .joinedload(DoctorClinics.address)
+        )
+        .all()
+    )
+
+    if not patient_appointments:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No Patient Appointments found for this patient id {user_id}"
+        )
+    
+    return patient_appointments

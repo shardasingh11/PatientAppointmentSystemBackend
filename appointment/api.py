@@ -1,11 +1,12 @@
+from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from appointment.schemas import CreateAppointment, DoctorAvailableSlotsResponse
+from appointment.schemas import CreateAppointment, DoctorAvailableSlotsResponse, PatientAppointmentResponse
 from core.permissions import role_required
 from db.session import get_db
 from user.models import UserRole
 from user.schemas import UserDB
-from .interface import create_doctor_appointment, get_doctor_all_slot
+from .interface import create_doctor_appointment, get_doctor_all_slot, get_all_patient_appointments
 
 
 
@@ -39,3 +40,14 @@ async def create_appointment(
         appointment_data=appointment_data, 
         user_id=current_user.id
     )
+
+# create api for get patient appointment
+@router.get("/all-patient-appointment", response_model=List[PatientAppointmentResponse])
+async def get_patient_appointments(
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(role_required(
+        allowed_user_roles=[UserRole.PATIENT]
+    )),
+):
+    user_id = current_user.id
+    return get_all_patient_appointments( db=db, user_id=current_user.id) 
