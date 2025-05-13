@@ -49,5 +49,4 @@ async def get_patient_appointments(
         allowed_user_roles=[UserRole.PATIENT]
     )),
 ):
-    user_id = current_user.id
     return get_all_patient_appointments( db=db, user_id=current_user.id) 

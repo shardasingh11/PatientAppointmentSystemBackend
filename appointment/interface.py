@@ -210,8 +210,10 @@ def get_all_patient_appointments(db: Session, user_id: int):
         db.query(Appointment)
         .filter(Appointment.patient_id == patient.id)
         .options(
+            joinedload(Appointment.patient)
+                .joinedload(Patient.user),
             joinedload(Appointment.doctor)
-            .joinedload(Doctor.user),
+                .joinedload(Doctor.user),
             selectinload(Appointment.clinic)
                 .joinedload(DoctorClinics.address)
         )

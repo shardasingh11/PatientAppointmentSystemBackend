@@ -33,6 +33,10 @@ class DoctorResponse(BaseModel):
     speciality: str
     user: UserResponse
 
+class PatientResponse(BaseModel):
+    id:int
+    user: UserResponse
+
 class ClinicAddressResponse(BaseModel):
     street_address: str
     area_name: str
@@ -47,7 +51,7 @@ class ClinicResponse(BaseModel):
     address: ClinicAddressResponse
     
 
-    
+
 
 class PatientAppointmentResponse(BaseModel):
     id: int
@@ -58,6 +62,7 @@ class PatientAppointmentResponse(BaseModel):
     fees: int
     payment_status: AppointmentPayment
     appointment_status: AppointmentStatus
+    patient: PatientResponse
     doctor:DoctorResponse
     clinic: ClinicResponse
 
