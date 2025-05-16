@@ -6,7 +6,7 @@ from core.permissions import role_required
 from db.session import get_db
 from user.models import UserRole
 from user.schemas import UserDB
-from .interface import create_doctor_appointment, get_doctor_all_slot, get_all_patient_appointments
+from .interface import create_doctor_appointment, get_all_doctor_appointments, get_doctor_all_slot, get_all_patient_appointments
 
 
 
@@ -50,3 +50,14 @@ async def get_patient_appointments(
     )),
 ):
     return get_all_patient_appointments( db=db, user_id=current_user.id) 
+
+
+# API endpoint for doctor to get all appointments
+@router.get("/doctor-appointments", response_model=List[PatientAppointmentResponse])
+async def get_doctor_appointments(
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(role_required(
+        allowed_user_roles=[UserRole.DOCTOR]
+    )),
+):
+    return get_all_doctor_appointments(db=db, user_id=current_user.id)

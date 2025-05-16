@@ -227,3 +227,37 @@ def get_all_patient_appointments(db: Session, user_id: int):
         )
     
     return patient_appointments
+
+
+def get_all_doctor_appointments(db: Session, user_id: int):
+    # Find the doctor associated with this user
+    doctor = db.query(Doctor).filter(Doctor.user_id == user_id).first()
+
+    if not doctor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No Doctor found for this user id {user_id}"
+        )
+    
+    # Query all appointments for this doctor
+    doctor_appointments = (
+        db.query(Appointment)
+        .filter(Appointment.doctor_id == doctor.id)
+        .options(
+            joinedload(Appointment.patient)
+                .joinedload(Patient.user),
+            joinedload(Appointment.doctor)
+                .joinedload(Doctor.user),
+            selectinload(Appointment.clinic)
+                .joinedload(DoctorClinics.address)
+        )
+        .all()
+    )
+
+    if not doctor_appointments:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No appointments found for this doctor id {user_id}"
+        )
+    
+    return doctor_appointments
